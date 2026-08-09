@@ -1,0 +1,25 @@
+[project]
+name = "tickersense"
+version = "0.1.0"
+description = "AI market-intelligence agent with MCP"
+requires-python = ">=3.11"
+dependencies = [
+    "yfinance",
+    "langgraph",
+    "langchain-core",
+    "python-dotenv",
+    "chromadb",
+    "sentence-transformers",
+    "langchain-ollama",
+    "mcp[cli]",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

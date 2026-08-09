@@ -1,0 +1,18 @@
+# --- Day 1: price fetching + LangGraph skeleton ---
+yfinance
+langgraph
+langchain-core
+python-dotenv
+
+# --- Day 2: news retrieval (RAG) ---
+chromadb
+sentence-transformers
+
+# --- Day 3: LLM analysis via Ollama ---
+langchain-ollama
+
+# --- Day 4: MCP server ---
+mcp[cli]
+
+# --- testing ---
+pytest

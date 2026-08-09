@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+
+# Local vector DB storage — regenerated at runtime, shouldn't be in git
+data/chroma/*
+!data/chroma/.gitkeep
+
+# MCP Inspector's generated server catalog — contains absolute local paths
+data/mcp-catalog.json
+
+# Private notes — personal/employer context, interview prep, and working notes.
+# Not for GitHub.
+CLAUDE.md
+INTERVIEW_PREP.md
+decision.md
+flow.md
