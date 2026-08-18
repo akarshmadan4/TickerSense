@@ -2,6 +2,7 @@ from mcp.server import MCPServer
 
 from tickersense.agent.graph import build_analysis_graph, build_snapshot_graph
 from tickersense.rag.embed import warm_up
+from tickersense.tools.price import format_amount
 
 mcp = MCPServer("TickerSense")
 
@@ -14,9 +15,9 @@ _analysis_agent = build_analysis_graph()
 def _format_price(ticker: str, price: dict) -> str:
     return (
         f"Ticker: {ticker}\n"
-        f"Price: {price['current_price']} {price['currency']} "
-        f"(prev close {price['previous_close']}, "
-        f"day range {price['day_low']}-{price['day_high']})"
+        f"Price: {format_amount(price['current_price'])} {price['currency']} "
+        f"(prev close {format_amount(price['previous_close'])}, "
+        f"day range {format_amount(price['day_low'])}-{format_amount(price['day_high'])})"
     )
 
 

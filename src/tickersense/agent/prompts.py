@@ -1,5 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate
 
+from tickersense.tools.price import format_amount
+
 ANALYSIS_PROMPT = ChatPromptTemplate.from_messages(
     [
         (
@@ -21,9 +23,9 @@ ANALYSIS_PROMPT = ChatPromptTemplate.from_messages(
 
 def format_price(price_data: dict) -> str:
     return (
-        f"Current price: {price_data['current_price']} {price_data['currency']}\n"
-        f"Previous close: {price_data['previous_close']}\n"
-        f"Day range: {price_data['day_low']} - {price_data['day_high']}"
+        f"Current price: {format_amount(price_data['current_price'])} {price_data['currency']}\n"
+        f"Previous close: {format_amount(price_data['previous_close'])}\n"
+        f"Day range: {format_amount(price_data['day_low'])} - {format_amount(price_data['day_high'])}"
     )
 
 
