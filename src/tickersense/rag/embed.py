@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 import chromadb
 from chromadb.utils import embedding_functions
 
@@ -44,6 +46,21 @@ def _get_collection(ticker: str):
     )
 
 
+def _published_ts(article: dict) -> int:
+    """Epoch seconds for an article's publish time; 0 if it can't be parsed.
+
+    Stored as a number rather than the raw string so ChromaDB can range-filter
+    on it. Unparseable dates become 0 so they sort as ancient — an article of
+    unknown age is kept out of the recency window rather than passed off as
+    fresh.
+    """
+    raw = article.get("published_at") or ""
+    try:
+        return int(datetime.fromisoformat(raw.replace("Z", "+00:00")).timestamp())
+    except (TypeError, ValueError):
+        return 0
+
+
 def index_news(ticker: str, articles: list[dict]) -> None:
     """Embed each new article and store it in the ticker's ChromaDB collection.
 
@@ -66,21 +83,54 @@ def index_news(ticker: str, articles: list[dict]) -> None:
         ids=[i for i, _ in new],
         documents=[f"{a['title']}. {a['summary']}".strip() for _, a in new],
         metadatas=[
-            {"title": a["title"], "publisher": a["publisher"], "link": a["link"]}
+            {
+                "title": a["title"],
+                "publisher": a["publisher"],
+                "link": a["link"],
+                "published_ts": _published_ts(a),
+            }
             for _, a in new
         ],
     )
 
 
-def retrieve_relevant_news(ticker: str, query: str, top_k: int = 3) -> list[dict]:
-    """Return the top_k articles for this ticker most relevant to `query`."""
+def retrieve_relevant_news(
+    ticker: str, query: str, top_k: int = 3, max_age_days: int = 14
+) -> list[dict]:
+    """Return the top_k articles for this ticker most relevant to `query`.
+
+    For news, similarity alone is the wrong ranking. Generic market commentary
+    from a month ago scores well against a query about share prices precisely
+    because it is about share prices, and it will outrank a company-specific
+    story from yesterday. Recency is a relevance signal in its own right, so
+    anything older than `max_age_days` is excluded before ranking rather than
+    competing on similarity.
+
+    The index is never pruned, so old articles stay on disk; this filters them
+    out at query time instead, which keeps the history without letting it
+    answer for the present.
+
+    If nothing falls inside the window — a quiet ticker, or a feed that has
+    gone stale — it falls back to unfiltered similarity so the tool still
+    answers rather than returning nothing.
+    """
     collection = _get_collection(ticker)
-    if collection.count() == 0:
+    count = collection.count()
+    if count == 0:
         return []
 
-    results = collection.query(
-        query_texts=[query], n_results=min(top_k, collection.count())
+    n_results = min(top_k, count)
+    cutoff = int(
+        (datetime.now(timezone.utc) - timedelta(days=max_age_days)).timestamp()
     )
+
+    results = collection.query(
+        query_texts=[query],
+        n_results=n_results,
+        where={"published_ts": {"$gte": cutoff}},
+    )
+    if not results["documents"][0]:
+        results = collection.query(query_texts=[query], n_results=n_results)
 
     return [
         {"text": doc, **meta}

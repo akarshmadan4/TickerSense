@@ -2,6 +2,7 @@ from mcp.server import MCPServer
 
 from tickersense.agent.graph import build_analysis_graph, build_snapshot_graph
 from tickersense.rag.embed import warm_up
+from tickersense.rag.news import format_published
 from tickersense.tools.price import format_amount
 
 mcp = MCPServer("TickerSense")
@@ -33,9 +34,19 @@ def get_stock_snapshot(ticker: str) -> str:
     """
     result = _snapshot_agent.invoke({"ticker": ticker})
 
-    lines = [_format_price(ticker, result["price_data"]), "", "Relevant recent news:"]
+    lines = [_format_price(ticker, result["price_data"]), ""]
+
+    if not result["news"]:
+        # Says nothing rather than offering unrelated articles: the feed
+        # carries other companies' stories, and those are filtered out.
+        lines.append("No recent news found for this company.")
+        return "\n".join(lines)
+
+    lines.append("Relevant recent news:")
     for article in result["news"]:
-        lines.append(f"- {article['title']} ({article['publisher']})")
+        published = format_published(article.get("published_ts"))
+        dateline = f", {published}" if published else ""
+        lines.append(f"- {article['title']} ({article['publisher']}{dateline})")
         lines.append(f"  {article['text']}")
     return "\n".join(lines)
 
