@@ -86,6 +86,57 @@ self-contained, which is exactly why both exist.
 
 ---
 
+## Example output
+
+Real output, captured from the running server — not illustrative samples.
+
+**`get_stock_snapshot("INFY.NS")`** — 0.5s warm:
+
+```
+Ticker: INFY.NS
+Price: 1115.00 INR (prev close 1139.90, day range 1112.50-1131.90)
+
+Relevant recent news:
+- Infosys (NSEI:INFY) Stock Fair Value Falls After Analysts Cut Targets On
+  Weaker Outlook (Simply Wall St., 2026-07-31)
+  Infosys now sits on a lower implied fair value, with the updated price target
+  moving from about ₹1,395.13 to roughly ₹1,199.02, a cut of around 14%. This
+  shift lines up with more cautious research coverage after the Q1 miss and
+  guidance reset...
+- Indian shares fall as crude tops $100; Infosys, IndiGo drop on subdued Q2
+  results (Reuters, 2026-07-24)
+- Infosys Q1 Earnings Miss Estimates, Revenues Increase Y/Y (Zacks, 2026-07-24)
+  INFY's Q1 fiscal 2027 earnings and revenues miss estimates as soft volumes and
+  a client exit offset growth and rising AI sales.
+```
+
+**`get_stock_analysis("INFY.NS")`** — 43s, all of it local inference:
+
+```
+Ticker: INFY.NS
+Price: 1115.00 INR (prev close 1139.90, day range 1112.50-1131.90)
+
+Analysis:
+The stock price of Infosys has fallen from its previous close of ₹1139.90 to the
+current price of ₹1115.00 INR, indicating a decline in value. The recent news
+suggests that analysts have cut their target prices by around 14% due to weaker
+organic growth and pricing pressure, which may indicate a negative sentiment
+towards the company's future prospects.
+
+Sentiment: Negative
+```
+
+The summary cites the specific 14% target cut from the retrieved article rather
+than generalising, which is the whole point of the retrieval step — that number
+is nowhere in the model's training data.
+
+Each article carries its publication date. News retrieval ranks on recency as
+well as similarity, and articles are filtered to the company before indexing,
+because a ticker's feed from the upstream source also carries other companies'
+stories.
+
+---
+
 ## Stack
 
 | Layer | Choice | Why |
